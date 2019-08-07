@@ -6,7 +6,7 @@
  * Time: 11:43
  */
 
-namespace Paas;
+namespace Paas\Sdk;
 
 use Paas\Kernel\Application;
 
