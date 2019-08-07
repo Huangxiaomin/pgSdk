@@ -8,9 +8,7 @@
 
 namespace Paas;
 
-
-
-class AmRequest extends Application
+class AmRequest
 {
     /**
      * 根据unionId 查询会员信息
@@ -22,15 +20,13 @@ class AmRequest extends Application
     /**
      * 更具unionId 查询会员信息
      *
-     * @param $requestData
      *
-     * @return array
-     * @author huangxiaomin <huangxiaomin@vchangyi.com>
+     * @return string
      *
      * @date   2019-08-07 14:11
      */
-    public function queryUnionId($requestData)
+    public function queryUnionId()
     {
-        return $this->httpPost(self::QUERY_UNIONID_URL, $requestData);
+        return self::QUERY_UNIONID_URL;
     }
 }
