@@ -1,0 +1,22 @@
+{
+  "name": "chuangxiang/request-apiM",
+  "description": "PHP Packagist About Request Apim",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Huangxm",
+      "email": "huangxiaomin@vchangyi.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "guzzlehttp/guzzle": "~6.0",
+    "pimple/pimple": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Paas\\": "src/"
+    }
+  }
+}
