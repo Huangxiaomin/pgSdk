@@ -9,14 +9,20 @@
 namespace Paas\Controller;
 
 
-use Paas\Application;
+
+use Paas\Kernel\Application;
 
 class StreamRequest extends Application
 {
+    public function __construct(array $config, $serviceName)
+    {
+        parent::__construct($config, $serviceName);
+    }
+
     /**
      * 推送消息
      */
-    const MESSAGE = '%s/stream-api/message/{eventTypeId}';
+    const MESSAGE = '/stream-api/message/{eventTypeId}';
 
     /**
      * 向EventHub推送消息
@@ -33,6 +39,7 @@ class StreamRequest extends Application
         foreach ($data as $fields => $value) {
             $url = str_replace('{'.$fields.'}', $value, $url);
         }
-        return $url;
+
+        return $this->httpPost($url, $data);
     }
 }

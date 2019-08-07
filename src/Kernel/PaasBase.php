@@ -12,6 +12,13 @@ namespace Paas\Kernel;
 abstract class PaasBase
 {
     /**
+     * 服务名字
+     *
+     * @var string
+     */
+    protected $serviceName = '';
+
+    /**
      * 发送请求
      *
      * @param $url
@@ -24,6 +31,7 @@ abstract class PaasBase
      */
     public function httpPost($url, $requestData)
     {
+        $requestData['sign'] = $this->makeSign($requestData);
         $data     = \GuzzleHttp\json_encode($requestData);
         $client   = new Client([
             // Base URI is used with relative requests
@@ -34,7 +42,7 @@ abstract class PaasBase
         $response = $client->post($url, [
             'headers' => [
                 'Content-Type'              => 'application/json',
-                'Ocp-Apim-Subscription-Key' => $this->config['subscription_key']
+                'Ocp-Apim-Subscription-Key' => $this->config[$this->serviceName]['subscription_key']
             ],
             'body'    => $data
         ]);
