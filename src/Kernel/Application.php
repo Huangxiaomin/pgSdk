@@ -8,6 +8,8 @@
 
 namespace Paas\Kernel;
 
+use GuzzleHttp\Client;
+
 class Application extends PaasBase
 {
     /**
@@ -19,11 +21,10 @@ class Application extends PaasBase
 
     protected $serviceName = '';
 
-    public function __construct(array $config, $serviceName)
+    public function __construct(array $config)
     {
-        $this->checkConfig($config, $serviceName);
-        $this->config = $config;
-        $this->serviceName = $serviceName;
+        $this->checkConfig($config);
+        $this->config      = $config;
     }
 
     /**
@@ -43,24 +44,16 @@ class Application extends PaasBase
             throw new \Exception('config is empty');
         }
 
-        if (isset($config['base_uri']) || empty($config['base_uri'])) {
+        if (!isset($config['base_uri']) || empty($config['base_uri'])) {
             throw new \Exception('base uri is empty');
         }
 
-        if (isset($config['api_key']) || empty($config['api_key'])) {
+        if (!isset($config['api_key']) || empty($config['api_key'])) {
             throw new \Exception('api_key is empty');
         }
 
-        if (isset($config['secret']) || empty($config['secret'])) {
+        if (!isset($config['secret']) || empty($config['secret'])) {
             throw new \Exception('secret is empty');
-        }
-
-        if (isset($config['service_name']) || empty($config['service_name'])) {
-            throw new \Exception('service_name is empty');
-        }
-
-        if (isset($config['service_name'][$serviceName]) || empty($config['service_name'][$serviceName])) {
-            throw new \Exception('service_name is empty');
         }
     }
 
@@ -73,26 +66,42 @@ class Application extends PaasBase
      *
      * @date   2019-08-07 17:21
      */
-    private function makeSign($requestData)
+    private function makeSign($params)
     {
-        // 将请求 BODY JSON 化
-        $jsonRequestData = json_encode(empty($requestData) ? (object)$requestData : $requestData, 320);
-
-        $params = [
-            'api_key'   => $this->config['api_key'],
-            'body'      => $jsonRequestData,
-            'nonce_str' => md5(uniqid(microtime(true), true)),
-            'timestamp' => date(time(), 'Y-m-d H:i:s'),
-        ];
-
         // 按照字典排序
         ksort($params, SORT_STRING);
         // 以 & 链接并且前后拼接 secret
         $tmp = $this->config['secret'] . urldecode(http_build_query($params)) . $this->config['secret'];
         // SHA 256 加密后，全部转大写
         return strtoupper(hash('sha256', $tmp));
+
     }
 
+    /**
+     * 组装请求参数
+     *
+     * @param $requestData
+     *
+     * @return string
+     * @author huangxiaomin <huangxiaomin@vchangyi.com>
+     *
+     * @date   2019-08-07 19:05
+     */
+    private function mergeRequestData($requestData)
+    {
+        // 将请求 BODY JSON 化
+        $jsonRequestData = json_encode(empty($requestData) ? (object)$requestData : $requestData, 320);
+        $params = [
+            'api_key'   => $this->config['api_key'],
+            'body'      => $jsonRequestData,
+            'nonce_str' => md5(uniqid(microtime(true), true)),
+            'timestamp' => date('Y-m-d H:i:s', time()),
+        ];
+        $params['sign'] = $this->makeSign($params);
+        unset($params['body']);
+        // 组装查询参数
+        return http_build_query($params);
+    }
     /**
      * 描述
      *
@@ -105,21 +114,60 @@ class Application extends PaasBase
      */
     public function httpPost($url, $requestData)
     {
-        $requestData['sign'] = $this->makeSign($requestData);
-        $data     = \GuzzleHttp\json_encode($requestData);
-        $client   = new Client([
-            // Base URI is used with relative requests
-            'base_uri' => $this->config['base_uri'],
-            // You can set any number of default request options.
-            'timeout'  => 10,
-        ]);
-        $response = $client->post($url, [
-            'headers' => [
-                'Content-Type'              => 'application/json',
-                'Ocp-Apim-Subscription-Key' => $this->config[$this->serviceName]['subscription_key']
-            ],
-            'body'    => $data
-        ]);
-        return json_decode($response->getBody()->getContents(), true);
+        $data                = \GuzzleHttp\json_encode($requestData);
+        try {
+            $url .= '?' . $this->mergeRequestData($requestData);
+            $client = new Client([
+                // Base URI is used with relative requests
+                'base_uri' => $this->config['base_uri'],
+                // You can set any number of default request options.
+                'timeout'  => 10,
+            ]);
+
+            $response = $client->post($url, [
+                'headers' => [
+                    'Content-Type'              => 'application/json',
+                    'Ocp-Apim-Subscription-Key' => $this->config['service_name'][$this->serviceName]['subscription_key']
+                ],
+                'body'    => $data
+            ]);
+            $data     = json_decode($response->getBody()->getContents(), true);
+        } catch (\Exception $exception) {
+            return [
+                'code' => 1000,
+                'message' => $this->response($exception->getCode()),
+                'error_url' => $url
+            ];
+        }
+        return $this->response($data);
+    }
+
+    /**
+     * 描述
+     *
+     * @param $code
+     *
+     * @throws \Exception
+     * @return void
+     * @author huangxiaomin <huangxiaomin@vchangyi.com>
+     *
+     * @date   2019-08-07 18:43
+     */
+    private function response($code)
+    {
+        $message  = '接口调用出错';
+        $response = [];
+        switch ($code) {
+            case 201:
+                $message = '已经创建';
+            case 401:
+                $message = '接口请求无权限';
+            case 403:
+            case 404:
+                break;
+            default:
+                break;
+        }
+        return $message;
     }
 }

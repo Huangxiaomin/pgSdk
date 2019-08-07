@@ -12,9 +12,11 @@ use Paas\Kernel\Application;
 
 class StreamRequest extends Application
 {
-    public function __construct(array $config, $serviceName)
+    protected $serviceName = 'stream-api';
+
+    public function __construct(array $config)
     {
-        parent::__construct($config, $serviceName);
+        parent::__construct($config);
     }
 
     /**

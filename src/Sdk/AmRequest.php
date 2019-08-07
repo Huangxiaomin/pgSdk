@@ -12,15 +12,16 @@ use Paas\Kernel\Application;
 
 class AmRequest extends Application
 {
+    protected $serviceName = 'cms-account-micro-service';
+
     /**
      * AmRequest constructor.
      *
      * @param array $config
-     * @param $serviceName
      */
-    public function __construct(array $config, $serviceName)
+    public function __construct(array $config)
     {
-        parent::__construct($config, $serviceName);
+        parent::__construct($config);
     }
 
     /**

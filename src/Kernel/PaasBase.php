@@ -42,7 +42,7 @@ abstract class PaasBase
         $response = $client->post($url, [
             'headers' => [
                 'Content-Type'              => 'application/json',
-                'Ocp-Apim-Subscription-Key' => $this->config[$this->serviceName]['subscription_key']
+                'Ocp-Apim-Subscription-Key' => $this->config[$this->serviceName]
             ],
             'body'    => $data
         ]);
