@@ -10,7 +10,7 @@ namespace Paas\Kernel;
 
 use GuzzleHttp\Client;
 
-class Application extends PaasBase
+class Application
 {
     /**
      * 配置信息
@@ -93,7 +93,7 @@ class Application extends PaasBase
             'api_key'   => $this->config['api_key'],
             'body'      => $jsonRequestData,
             'nonce_str' => md5(uniqid(microtime(true), true)),
-            'timestamp' => date('Y-m-d H:i:s', time()),
+            'timestamp' => date('Y-m-d H:i:s'),
         ];
         $params['sign'] = $this->makeSign($params);
         unset($params['body']);
@@ -112,7 +112,7 @@ class Application extends PaasBase
      *
      * @date   2019-08-08 11:07
      */
-    public function httpPost($url, $requestData)
+    protected function httpPost($url, $requestData)
     {
         $data                = \GuzzleHttp\json_encode($requestData);
         try {
@@ -127,7 +127,7 @@ class Application extends PaasBase
             $response = $client->post($url, [
                 'headers' => [
                     'Content-Type'              => 'application/json',
-                    'Ocp-Apim-Subscription-Key' => $this->config['service_name'][$this->serviceName]['subscription_key']
+                    'Ocp-Apim-Subscription-Key' => $this->config[$this->serviceName]
                 ],
                 'body'    => $data
             ]);
@@ -148,7 +148,7 @@ class Application extends PaasBase
      * @param $code
      *
      * @throws \Exception
-     * @return void
+     * @return string
      * @author huangxiaomin <huangxiaomin@vchangyi.com>
      *
      * @date   2019-08-07 18:43
@@ -156,14 +156,17 @@ class Application extends PaasBase
     private function response($code)
     {
         $message  = '接口调用出错';
-        $response = [];
         switch ($code) {
             case 201:
                 $message = '已经创建';
+                break;
             case 401:
                 $message = '接口请求无权限';
+                break;
             case 403:
+                break;
             case 404:
+                $message = '接口地址未找到';
                 break;
             default:
                 break;

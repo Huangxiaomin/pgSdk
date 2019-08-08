@@ -22,7 +22,7 @@ class StreamRequest extends Application
     /**
      * 推送消息
      */
-    const MESSAGE = '%s/stream-api/message/{eventTypeId}';
+    const MESSAGE = '/stream-api/message/{eventTypeId}';
 
     /**
      * 向EventHub推送消息
