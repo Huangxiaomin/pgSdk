@@ -34,11 +34,10 @@ class Application extends PaasBase
      *
      * @throws \Exception
      * @return void
-     * @author huangxiaomin <huangxiaomin@vchangyi.com>
      *
      * @date   2019-08-07 11:47
      */
-    private function checkConfig(array $config, $serviceName)
+    private function checkConfig(array $config)
     {
         if (empty($config)) {
             throw new \Exception('config is empty');
@@ -58,9 +57,9 @@ class Application extends PaasBase
     }
 
     /**
-     * 描述
+     * 生成签名
      *
-     * @param $requestData
+     * @param $params
      *
      * @return string
      *
@@ -83,7 +82,6 @@ class Application extends PaasBase
      * @param $requestData
      *
      * @return string
-     * @author huangxiaomin <huangxiaomin@vchangyi.com>
      *
      * @date   2019-08-07 19:05
      */
@@ -102,15 +100,17 @@ class Application extends PaasBase
         // 组装查询参数
         return http_build_query($params);
     }
+
     /**
      * 描述
      *
      * @param $url
      * @param $requestData
      *
-     * @return array|mixed
+     * @throws \Exception
+     * @return array
      *
-     * @date   2019-08-07 17:21
+     * @date   2019-08-08 11:07
      */
     public function httpPost($url, $requestData)
     {
@@ -131,15 +131,15 @@ class Application extends PaasBase
                 ],
                 'body'    => $data
             ]);
-            $data     = json_decode($response->getBody()->getContents(), true);
+            $result     = json_decode($response->getBody()->getContents(), true);
+
+            if ($result['resultCode'] != 0) {
+                throw new \Exception($result['message']);
+            }
+            return $result['object'];
         } catch (\Exception $exception) {
-            return [
-                'code' => 1000,
-                'message' => $this->response($exception->getCode()),
-                'error_url' => $url
-            ];
+            throw new \Exception($this->response($exception->getCode()));
         }
-        return $this->response($data);
     }
 
     /**

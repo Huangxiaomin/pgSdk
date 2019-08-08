@@ -22,24 +22,22 @@ class StreamRequest extends Application
     /**
      * 推送消息
      */
-    const MESSAGE = '/stream-api/message/{eventTypeId}';
+    const MESSAGE = '%s/stream-api/message/{eventTypeId}';
 
     /**
      * 向EventHub推送消息
      *
      * @param array $data
+     * @param $eventTypeId
      *
-     * @return string
+     * @throws \Exception
+     * @return array
      *
-     * @date   2019-08-07 15:17
+     * @date   2019-08-08 11:09
      */
-    public function message(array $data)
+    public function message(array $data, $eventTypeId)
     {
-        $url = self::MESSAGE;
-        foreach ($data as $fields => $value) {
-            $url = str_replace('{'.$fields.'}', $value, $url);
-        }
-
+        $url = str_replace('{eventTypeId}', $eventTypeId, self::MESSAGE);
         return $this->httpPost($url, $data);
     }
 }
