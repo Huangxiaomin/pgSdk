@@ -12,6 +12,11 @@ use Paas\Kernel\Application;
 
 class AmRequest extends Application
 {
+    /**
+     * serviceName
+     * 
+     * @var string
+     */
     protected $serviceName = 'cms-account-micro-service';
 
     /**
@@ -32,7 +37,7 @@ class AmRequest extends Application
     const QUERY_UNIONID_URL = '/cms-account-micro-service/AccountServiceRest/queryUnionId';
 
     /**
-     * 更具unionId 查询会员信息
+     * 根据unionId 查询会员信息
      *
      *
      * @return string
